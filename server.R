@@ -5,7 +5,7 @@ source("ensembl.R")
 shinyServer(function(input, output, session){
   
   datasets <- reactive({
-    names <- listDatasets(useMart("ensembl"))
+    names <- read.csv("genes.csv")
     names <- sort(names$description)
     return(names)
   })
@@ -24,6 +24,18 @@ shinyServer(function(input, output, session){
   organisms <- eventReactive(input$goButton,
 {
   as.character(input$Select)
+})
+
+output$plot_text <- renderUI({
+  if(length(input$Select) == 0){
+  text1 <- "This is where your plot will be displayed."
+  text2 <- "Some datasets can be extremely large, so plotting may take some time. Please be patient."
+  text3 <- "It is best to refresh after each run of the plot."
+  HTML(paste(text1, text2, text3, sep = '<br/><br/>'))
+  }
+  else{
+    return()
+  }
 })
 
 output$plot <- renderImage({
@@ -47,5 +59,25 @@ output$plot <- renderImage({
        width = width,
        height = height)
 }, deleteFile = TRUE)
+
+output$down <- downloadHandler(
+  
+  filename = function(){
+    paste("UpSetR-orthologs", input$filetype, sep =".")
+  }, 
+  content = function(file){
+    width  <- session$clientData$output_plot_width
+    height <- ((session$clientData$output_plot_height)*2)
+    pixelratio <- session$clientData$pixelratio
+    if(input$filetype == "png")
+      png(file, width=width*pixelratio, height=height*pixelratio,
+          res=72*pixelratio)
+    else
+      pdf(file,width = 22, height = 14)
+    UpSetRensembl(organisms())
+    
+    dev.off()
+  }
+)
 
 })

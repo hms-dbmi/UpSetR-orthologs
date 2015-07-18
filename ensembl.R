@@ -2,12 +2,9 @@ library(UpSetR)
 library(biomaRt)
 library(data.table)
 UpSetRensembl <- function(organisms){
-  ensembl = useMart("ensembl")
-  species <- listDatasets(ensembl)
-  species <- species[-3]
+  species <- read.csv("genes.csv")
   species <- species[which(species$description %in% organisms),]
   species <- head(as.character(species$dataset), 6)
-  print(species)
   
   getEnsemblMarts <- function(dSet){
     ensembl <- useMart("ensembl",dataset=dSet)
