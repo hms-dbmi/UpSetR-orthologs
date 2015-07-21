@@ -4,10 +4,10 @@ library(data.table)
 UpSetRensembl <- function(organisms){
   species <- read.csv("genes.csv")
   species <- species[which(species$description %in% organisms),]
-  species <- head(as.character(species$dataset), 6)
+  species <- head(as.character(species$dataset), 5)
   
   getEnsemblMarts <- function(dSet){
-    ensembl <- useMart("ensembl",dataset=dSet)
+    ensembl <- useMart("ENSEMBL_MART_ENSEMBL",host = "useast.ensembl.org", dataset=dSet)
   }
   
   sixSpecies <- function(species){
@@ -63,7 +63,8 @@ UpSetRensembl <- function(organisms){
       attnames <-colnames(data[-c(sets)])
     }
     names <- c(attnames, setnames)
-    data <- data.frame(cbind(data[ ,!(colnames(data) %in% colnames(data[,sets]))],apply(data[sets], 1:2, function(x) if(isTRUE(x == "")){x <- 0} else{x=1})))
+    data <- data.frame(apply(data[sets], 1:2, function(x) if(isTRUE(x == "")){x <- 0} else{x=1}))
+    #cbind(data[ ,!(colnames(data) %in% colnames(data[,sets]))],
     colnames(data) <- names
     return(data)
   }
