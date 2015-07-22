@@ -73,11 +73,9 @@ getNames <- function(species){
 #   alldata <- data.frame(alldata[!duplicated(alldata),])
 #   return(alldata)
 # }
-
-
-BioMartConverter <- function(data){
+ManualBioMartConverter <- function(data){
   data <- data[which(!duplicated(data)), ]
-  sets <- grep(tolower("homolog"), colnames(data))
+  sets <- grep(("gene"), tolower(colnames(data)))
   setnames <- colnames(data[c(sets)]) 
   attnames <- NULL
   if(length(setnames) != length(data)){
@@ -88,4 +86,48 @@ BioMartConverter <- function(data){
   #cbind(data[ ,!(colnames(data) %in% colnames(data[,sets]))],
   colnames(data) <- names
   return(data)
+}
+
+BioMartConverter <- function(data){
+  data <- data[which(!duplicated(data)), ]
+  sets <- grep("homolog", tolower(colnames(data)))
+  setnames <- colnames(data[c(sets)]) 
+  attnames <- NULL
+  if(length(setnames) != length(data)){
+    attnames <-colnames(data[-c(sets)])
+  }
+  names <- c(attnames, setnames)
+  data <- data.frame(apply(data[sets], 1:2, function(x) if(isTRUE(x == "")){x <- 0} else{x=1}))
+  #cbind(data[ ,!(colnames(data) %in% colnames(data[,sets]))],
+  colnames(data) <- names
+  return(data)
+}
+
+orthologs_manual <- function(datalist){
+  if(length(datalist) > 1){
+  names <- list()
+  for(i in seq_along(datalist)){
+    colname <- colnames(datalist[[i]])
+    names[[i]] <- colname
+  }
+  
+  names <- unique(unlist(names))
+  names <- names[-match("Ensembl.Gene.ID", names)]
+  for(i in seq_along(datalist)){
+    col <- match("Ensembl.Gene.ID", colnames(datalist[[i]]))
+    sets <- grep("Gene", colnames(datalist[[i]]))
+    sets <- colnames(datalist[[i]])[sets]
+    sets <- sets[-col]
+    missing <- names[!(names %in% sets)]
+    colnames(datalist[[i]])[col] <- missing
+    datalist[[i]] <- datalist[[i]][,order(colnames(datalist[[i]]))]
+    datalist[[i]] <- ManualBioMartConverter(datalist[[i]])
+  }
+  
+  datalist <- rbindlist(datalist)
+  }
+  else{
+    datalist <- ManualBioMartConverter(data.frame(datalist))
+   return(data.frame(datalist)) 
+  }
 }

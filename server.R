@@ -1,6 +1,7 @@
 library(shiny)
 library(UpSetR)
 library(biomaRt)
+library(data.table)
 source("ensembl.R")
 shinyServer(function(input, output, session){
   
@@ -18,9 +19,9 @@ shinyServer(function(input, output, session){
     return(genes)
   })
   
-  #   organisms <- reactive({
-  #     organisms <- as.character(c(input$Select))
-  #   })
+    organisms <- reactive({
+      organisms <- as.character(c(input$Select))
+    })
   
   organisms <- eventReactive(input$goButton,
 {
@@ -82,6 +83,24 @@ shinyServer(function(input, output, session){
     })
   })
   
+  
+  My_data <- reactive({  
+    My_data <- list()
+    inFile <- input$files
+    if (is.null(inFile))
+      return(NULL)
+    else{
+    My_data <- lapply(inFile$datapath, read.csv)
+    }
+return(My_data)
+  })
+  
+  upsetdata_manual <- reactive({
+    upsetdata_manual <- orthologs_manual(My_data())
+    return(upsetdata_manual)
+  })
+
+
 output$plot_text <- renderUI({
   if(length(input$Select) == 0){
   text1 <- "This is where your plot will be displayed."
@@ -94,8 +113,18 @@ output$plot_text <- renderUI({
   }
 })
 
+output$mplot_text <- renderUI({
+  if(is.null(My_data())){
+    text <- "This is where your plot will be displayed!"
+    HTML(text)
+  }
+  else{
+    return()
+  }
+})
+
 output$plot <- renderImage({
-  
+  dev.cur()
   width  <- session$clientData$output_plot_width
   height <- ((session$clientData$output_plot_height)*1.7)
   pixelratio <- session$clientData$pixelratio
@@ -123,7 +152,7 @@ output$down <- downloadHandler(
   }, 
   content = function(file){
     width  <- session$clientData$output_plot_width
-    height <- ((session$clientData$output_plot_height)*2)
+    height <- ((session$clientData$output_plot_height))
     pixelratio <- session$clientData$pixelratio
     if(input$filetype == "png")
       png(file, width=width*pixelratio, height=height*pixelratio,
@@ -135,5 +164,29 @@ output$down <- downloadHandler(
     dev.off()
   }
 )
+
+output$manplot <- renderImage({
+  if(length(My_data()) == 0){
+    stop()
+  }
+  width  <- session$clientData$output_plot_width
+  height <- ((session$clientData$output_plot_height) * 1.7)
+  pixelratio <- session$clientData$pixelratio
+  # A temp file to save the output. It will be deleted after renderImage
+  # sends it, because deleteFile=TRUE.
+  outfile <- tempfile(fileext='.png')
+  
+  # Generate a png
+  if(!is.null(My_data())){
+  png(outfile, width=width*pixelratio, height=height*pixelratio,
+      res=72*pixelratio)
+    upset(upsetdata_manual(), order.matrix="freq", empty.intersections = "on")
+  }
+  dev.off()
+  # Return a list
+  list(src = outfile,
+       width = width,
+       height = height)
+}, deleteFile = TRUE)
 
 })
