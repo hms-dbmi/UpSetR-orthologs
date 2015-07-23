@@ -124,7 +124,7 @@ output$mplot_text <- renderUI({
 })
 
 output$plot <- renderImage({
-  dev.cur()
+  
   width  <- session$clientData$output_plot_width
   height <- ((session$clientData$output_plot_height)*1.7)
   pixelratio <- session$clientData$pixelratio
@@ -159,21 +159,24 @@ output$down <- downloadHandler(
           res=72*pixelratio)
     else
       pdf(file,width = 22, height = 14)
-    UpSetRensembl(organisms())
+    upset(upsetdata(), order.matrix="freq", empty.intersections = "on")
     
     dev.off()
   }
 )
 
 output$manplot <- renderImage({
-  if(length(My_data()) == 0){
-    stop()
-  }
-  width  <- session$clientData$output_plot_width
-  height <- ((session$clientData$output_plot_height) * 1.7)
+
+  width  <- session$clientData$output_manplot_width
+  height <- ((session$clientData$output_manplot_height) * 1.7)
   pixelratio <- session$clientData$pixelratio
   # A temp file to save the output. It will be deleted after renderImage
   # sends it, because deleteFile=TRUE.
+  
+  if(length(My_data()) == 0){
+    stop()
+  }
+  
   outfile <- tempfile(fileext='.png')
   
   # Generate a png
@@ -188,5 +191,26 @@ output$manplot <- renderImage({
        width = width,
        height = height)
 }, deleteFile = TRUE)
+
+
+output$mandown <- downloadHandler(
+  
+  filename = function(){
+    paste("UpSetR-file", input$ftype, sep =".")
+  }, 
+  content = function(file){
+    width  <- session$clientData$output_manplot_width
+    height <- ((session$clientData$output_manplot_height))
+    pixelratio <- session$clientData$pixelratio
+    if(input$ftype == "png")
+      png(file, width=width*pixelratio, height=height*pixelratio,
+          res=72*pixelratio)
+    else
+      pdf(file,width = 22, height = 14)
+    upset(upsetdata_manual(), order.matrix="freq", empty.intersections = "on")
+    
+    dev.off()
+  }
+)
 
 })

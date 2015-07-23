@@ -28,7 +28,11 @@ shinyUI(
                         sidebarPanel(
                         fluidRow(
                           fileInput('files', 'Upload files', multiple = TRUE, accept = c(
-                            'text/csv', 'text/comma-separated-values', 'text/tab-separated-values', '.csv', '.tsv'))
+                            'text/csv', 'text/comma-separated-values', 'text/tab-separated-values', '.csv', '.tsv')),
+                          br(),
+                          radioButtons(inputId = "ftype", label = "File type", choices = list("png", "pdf")),
+                          br(),
+                          downloadButton(outputId = "mandown", label = "Download!")
                         )
                         ,width =3),
                       mainPanel(
