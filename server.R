@@ -4,7 +4,7 @@ library(biomaRt)
 library(data.table)
 source("ensembl.R")
 shinyServer(function(input, output, session){
-  
+  options(shiny.maxRequestSize=30*1024^2)
   datasets <- reactive({
     names <- read.csv("genes.csv")
     names <- sort(names$description)
@@ -97,6 +97,7 @@ return(My_data)
   
   upsetdata_manual <- reactive({
     upsetdata_manual <- orthologs_manual(My_data())
+    upsetdata_manual <- ManualBioMartConverter(upsetdata_manual)
     return(upsetdata_manual)
   })
 

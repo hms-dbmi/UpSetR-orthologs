@@ -121,13 +121,14 @@ orthologs_manual <- function(datalist){
     missing <- names[!(names %in% sets)]
     colnames(datalist[[i]])[col] <- missing
     datalist[[i]] <- datalist[[i]][,order(colnames(datalist[[i]]))]
-    datalist[[i]] <- ManualBioMartConverter(datalist[[i]])
   }
   
   datalist <- rbindlist(datalist)
+  datalist <- data.frame(datalist[!duplicated(datalist),])
   }
   else{
-    datalist <- ManualBioMartConverter(data.frame(datalist))
+    datalist <- datalist[!duplicated(datalist), ]
+    # datalist <- ManualBioMartConverter(data.frame(datalist))
    return(data.frame(datalist)) 
   }
 }
