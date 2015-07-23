@@ -3,7 +3,13 @@ library(shiny)
 shinyUI(
   navbarPage("UpSetR - Ensembl",
              tabPanel("Instructions",
-                      mainPanel()     
+                      mainPanel(
+                        tags$a(href = "homo.csv", "Human Reference Genes"),
+                        br(),
+                        tags$a(href = "molly.csv", "Amazon Molly Reference Genes"),
+                        br(),
+                        tags$a(href = "alp.csv", "Alpaca Reference Genes")
+                      )     
              ),
              tabPanel("Ensembl via R",
                       sidebarLayout(
